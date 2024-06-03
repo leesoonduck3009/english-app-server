@@ -1,0 +1,15 @@
+description: Ultralytics best model trained on /content/text_block-1/data.yaml
+author: Ultralytics
+date: '2024-06-01T16:33:28.654374'
+version: 8.2.27
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: detect
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: block - v1 2021-11-04 3-50pm
+  1: blocktext
