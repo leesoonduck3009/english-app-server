@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const { spawn } = require('child_process');
@@ -7,6 +8,7 @@ const app = express();
 const port = 8080;
 const upload = multer({ dest: 'uploads/' });
 const OpenAI = require('openai');
+const apiOpenAI = process.env.API_OPENAI
 app.use(express.json());
 const removeFirstThreeLines = (inputString) => {
     const lines = inputString.split('\n'); // Tách chuỗi thành các dòng
@@ -14,11 +16,11 @@ const removeFirstThreeLines = (inputString) => {
     const outputString = remainingLines.join('\n'); // Kết hợp các dòng còn lại thành chuỗi mới
     return outputString;
 };
-app.post('/upload', upload.single('image'), (req, res) => {
+app.post('/detect', upload.single('image'), (req, res) => {
     const imagePath = req.file.path;
     console.log("Hello");
     // Gọi Python script để xử lý ảnh
-    const pythonProcess = spawn('python', ['detect.py', imagePath]);
+    const pythonProcess = spawn('python', ['detect.py', imagePath, apiOpenAI]);
 
     let dataChunks = [];
     
@@ -28,7 +30,7 @@ app.post('/upload', upload.single('image'), (req, res) => {
 
     pythonProcess.stderr.on('data', (data) => {
         console.error(`stderr: ${data}`);
-        res.status(500).send(data.toString());
+        res.status(500).json({data: data});
     });
 
     pythonProcess.on('close', (code) => {
@@ -39,7 +41,9 @@ app.post('/upload', upload.single('image'), (req, res) => {
                 console.log(output)
                 //
                 const cleanedString = removeFirstThreeLines(output);
-                return res.status(200).json({data: output});
+                // Chuyển đổi chuỗi JSON thành đối tượng JavaScript
+                const jsonData = JSON.parse(cleanedString);
+                return res.status(200).json({data: jsonData});
             } catch (error) {
                 console.error('Error parsing JSON:', error);
                 res.status(500).send('Error parsing JSON output from Python script.');
@@ -62,7 +66,7 @@ app.get('/test', (req, res) => {
     //const imagePath = req.file.path;
 
     // Gọi Python script để xử lý ảnh
-    res.json({data: "imagePath"});
+    res.json({data: apiOpenAI});
 });
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
